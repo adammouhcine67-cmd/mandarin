@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>汉语 · Adam's Mandarin</title>
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0c0c10;
+  --surface:#15151b;
+  --surface2:#1e1e26;
+  --border:#2a2a34;
+  --border2:#38383f;
+  --text:#e8e6f0;
+  --muted:#6b697a;
+  --muted2:#4a4855;
+  --red:#e8453c;
+  --red2:#b33028;
+  --red-bg:#1f1210;
+  --green:#3ecf72;
+  --green-bg:#0d1f15;
+  --yellow:#f5c542;
+  --yellow-bg:#1f1a08;
+  --blue:#4a9eff;
+  --blue-bg:#0c1a2e;
+  --purple:#a78bfa;
+  --purple-bg:#140f24;
+  --radius:14px;
+  --radius-sm:8px;
+}
+html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);}
+
+/* ── LAYOUT ───────────────────────────────────────────────── */
+#shell{display:flex;height:100vh;overflow:hidden;}
+#sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:1.5rem 1rem;}
+#main{flex:1;overflow-y:auto;padding:2rem 2.5rem;}
+@media(max-width:700px){#sidebar{display:none;}#main{padding:1rem;}}
+
+/* ── SIDEBAR ──────────────────────────────────────────────── */
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:2rem;}
+.logo-char{font-size:28px;color:var(--red);}
+.logo-text{font-size:16px;font-weight:700;letter-spacing:-0.02em;}
+.logo-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;color:var(--muted);transition:all .15s;margin-bottom:4px;border:1px solid transparent;}
+.nav-item:hover{color:var(--text);background:var(--surface2);}
+.nav-item.active{color:var(--text);background:var(--red-bg);border-color:var(--red2);}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.nav-spacer{flex:1;}
+.xp-chip{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:8px 12px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;}
+.xp-chip strong{color:var(--yellow);font-size:14px;}
+
+/* ── SCREENS ──────────────────────────────────────────────── */
+.screen{display:none;}
+.screen.active{display:block;}
+
+/* ── DASHBOARD ────────────────────────────────────────────── */
+.dash-header{margin-bottom:2rem;}
+.dash-header h1{font-size:24px;font-weight:700;letter-spacing:-0.02em;}
+.dash-header p{color:var(--muted);font-size:14px;margin-top:4px;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:2rem;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;}
+.stat-card .val{font-size:28px;font-weight:700;line-height:1;}
+.stat-card .lbl{font-size:12px;color:var(--muted);margin-top:6px;}
+.stat-card.yellow .val{color:var(--yellow);}
+.stat-card.green .val{color:var(--green);}
+.stat-card.blue .val{color:var(--blue);}
+.stat-card.red .val{color:var(--red);}
+
+.progress-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:2rem;}
+.progress-card h2{font-size:15px;font-weight:600;margin-bottom:4px;}
+.progress-card .sub{font-size:13px;color:var(--muted);margin-bottom:1rem;}
+.bar-wrap{background:var(--surface2);border-radius:20px;height:10px;overflow:hidden;margin-bottom:8px;}
+.bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--red),var(--red2));transition:width .6s ease;}
+.bar-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);}
+
+.level-badge{display:inline-flex;align-items:center;gap:8px;background:var(--red-bg);border:1px solid var(--red2);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--red);font-weight:600;margin-bottom:1.5rem;}
+
+.section-title{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:1rem;font-weight:600;}
+
+.lesson-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:2rem;}
+.lesson-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+.lesson-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.lesson-card.done{border-color:#2a3d2f;background:#0f1a12;}
+.lesson-card.locked{opacity:.45;cursor:not-allowed;}
+.lesson-card .lc-icon{font-size:28px;margin-bottom:8px;}
+.lesson-card .lc-name{font-size:14px;font-weight:600;}
+.lesson-card .lc-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+.lesson-card .lc-badge{position:absolute;top:10px;right:10px;font-size:11px;padding:2px 7px;border-radius:10px;}
+.lesson-card.done .lc-badge{background:#1a3d24;color:var(--green);}
+.lesson-card:not(.done):not(.locked) .lc-badge{background:var(--red-bg);color:var(--red);}
+
+/* ── LESSON SCREENS ───────────────────────────────────────── */
+.lesson-header{display:flex;align-items:center;gap:12px;margin-bottom:2rem;}
+.back-btn{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 14px;font-size:13px;cursor:pointer;color:var(--muted);font-family:inherit;transition:all .15s;}
+.back-btn:hover{color:var(--text);border-color:var(--border2);}
+.lesson-title-wrap h2{font-size:20px;font-weight:700;}
+.lesson-title-wrap p{font-size:13px;color:var(--muted);}
+
+.card-stage{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2.5rem;text-align:center;margin-bottom:1.5rem;min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.big-char{font-size:80px;line-height:1;color:var(--text);}
+.big-pinyin{font-size:22px;color:var(--red);font-style:italic;}
+.big-meaning{font-size:16px;color:var(--muted);}
+.big-hint{font-size:13px;color:var(--muted2);max-width:280px;line-height:1.5;}
+.play-btn{background:var(--red);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 22px;font-size:14px;cursor:pointer;font-family:inherit;font-weight:600;transition:background .15s;}
+.play-btn:hover{background:var(--red2);}
+
+.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem;}
+.quiz-opt{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 18px;font-size:15px;cursor:pointer;font-family:inherit;color:var(--text);transition:all .15s;text-align:left;}
+.quiz-opt:hover{border-color:var(--border2);background:var(--surface2);}
+.quiz-opt.correct{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+.quiz-opt.wrong{background:var(--red-bg);border-color:var(--red);color:var(--red);}
+
+.progress-dots{display:flex;gap:6px;justify-content:center;margin-bottom:1.5rem;}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);}
+.dot.done-dot{background:var(--green);border-color:var(--green);}
+.dot.current-dot{background:var(--red);border-color:var(--red);}
+
+.action-row{display:flex;gap:10px;justify-content:flex-end;}
+.btn-primary{background:var(--red);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px 28px;font-size:15px;cursor:pointer;font-family:inherit;font-weight:600;transition:background .15s;}
+.btn-primary:hover{background:var(--red2);}
+.btn-primary:disabled{background:var(--surface2);color:var(--muted);cursor:not-allowed;}
+.btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 24px;font-size:15px;cursor:pointer;font-family:inherit;transition:all .15s;}
+.btn-secondary:hover{color:var(--text);border-color:var(--border2);}
+
+.feedback-bar{padding:14px 18px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;margin-bottom:1rem;display:none;}
+.feedback-bar.show{display:block;}
+.feedback-bar.ok{background:var(--green-bg);color:var(--green);border:1px solid #1a3d24;}
+.feedback-bar.bad{background:var(--red-bg);color:var(--red);border:1px solid var(--red2);}
+
+/* ── PINYIN SCREEN ────────────────────────────────────────── */
+.pinyin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:2rem;}
+.pinyin-tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s;}
+.pinyin-tile:hover{border-color:var(--red2);background:var(--red-bg);}
+.pinyin-tile .pt-pin{font-size:16px;font-weight:600;color:var(--text);}
+.pinyin-tile .pt-ex{font-size:12px;color:var(--muted);margin-top:3px;}
+
+/* ── TONES SCREEN ─────────────────────────────────────────── */
+.tone-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+.tone-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;}
+.tone-card .tc-mark{font-size:36px;font-weight:700;}
+.tone-card .tc-name{font-size:14px;font-weight:600;margin-top:8px;}
+.tone-card .tc-desc{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5;}
+.tone-card .tc-ex{margin-top:10px;background:var(--surface2);border-radius:var(--radius-sm);padding:10px;font-size:13px;}
+.tone-card.t1{border-color:#4a9eff44;}.tone-card.t1 .tc-mark{color:var(--blue);}
+.tone-card.t2{border-color:#3ecf7244;}.tone-card.t2 .tc-mark{color:var(--green);}
+.tone-card.t3{border-color:#f5c54244;}.tone-card.t3 .tc-mark{color:var(--yellow);}
+.tone-card.t4{border-color:#e8453c44;}.tone-card.t4 .tc-mark{color:var(--red);}
+.tone-card.t5{border-color:#a78bfa44;}.tone-card.t5 .tc-mark{color:var(--purple);}
+
+/* ── CHATBOT ──────────────────────────────────────────────── */
+#chat-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;min-height:380px;max-height:480px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;margin-bottom:1rem;scroll-behavior:smooth;}
+#chat-box::-webkit-scrollbar{width:4px;}
+#chat-box::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.cmsg{display:flex;flex-direction:column;gap:4px;max-width:85%;}
+.cmsg.user{align-self:flex-end;align-items:flex-end;}
+.cmsg.bot{align-self:flex-start;align-items:flex-start;}
+.cbubble{padding:10px 15px;border-radius:14px;font-size:15px;line-height:1.55;}
+.cmsg.user .cbubble{background:var(--red);color:#fff;border-bottom-right-radius:4px;}
+.cmsg.bot .cbubble{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-bottom-left-radius:4px;}
+.clabel{font-size:11px;color:var(--muted2);padding:0 4px;}
+.chat-input-row{display:flex;gap:8px;}
+#chat-input{flex:1;padding:12px 16px;font-size:15px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);outline:none;font-family:inherit;transition:border-color .15s;}
+#chat-input::placeholder{color:var(--muted2);}
+#chat-input:focus{border-color:var(--red);}
+#chat-send{padding:12px 20px;background:var(--red);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s;}
+#chat-send:hover{background:var(--red2);}
+#chat-send:disabled{background:var(--surface2);color:var(--muted);cursor:not-allowed;}
+.vocab-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem;}
+.vpill{font-size:12px;padding:5px 11px;border-radius:20px;background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s;}
+.vpill:hover{border-color:var(--red2);color:var(--text);}
+.typing-dots{display:flex;gap:5px;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;width:fit-content;}
+.typing-dots span{width:7px;height:7px;background:var(--muted2);border-radius:50%;animation:tdot 1.2s infinite;}
+.typing-dots span:nth-child(2){animation-delay:.2s;}
+.typing-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);background:var(--red);}}
+
+/* ── TOAST ────────────────────────────────────────────────── */
+#toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 20px;font-size:14px;transition:transform .3s;z-index:99;pointer-events:none;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast.xp{border-color:#f5c54288;color:var(--yellow);}
+
+/* ── SUPABASE CONFIG ──────────────────────────────────────── */
+#config-screen{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem;}
+#config-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;width:100%;max-width:480px;}
+#config-box h2{font-size:18px;font-weight:700;margin-bottom:6px;}
+#config-box p{font-size:13px;color:var(--muted);margin-bottom:1.5rem;line-height:1.5;}
+.config-field{margin-bottom:1rem;}
+.config-field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
+.config-field input{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;font-family:inherit;outline:none;}
+.config-field input:focus{border-color:var(--red);}
+</style>
+</head>
+<body>
+
+<!-- ── SUPABASE CONFIG MODAL ──────────────────────────────── -->
+<div id="config-screen">
+  <div id="config-box">
+    <h2>Connect to Supabase</h2>
+    <p>Paste your Supabase project URL and anon key to save your progress. Find these in your Supabase dashboard under Project Settings → API.</p>
+    <div class="config-field">
+      <label>Supabase URL</label>
+      <input type="text" id="cfg-url" placeholder="https://xxxx.supabase.co"/>
+    </div>
+    <div class="config-field">
+      <label>Anon Key</label>
+      <input type="text" id="cfg-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5c..."/>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:1.5rem;">
+      <button class="btn-secondary" onclick="skipConfig()">Skip for now</button>
+      <button class="btn-primary" onclick="saveConfig()">Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SHELL ──────────────────────────────────────────────── -->
+<div id="shell">
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div class="logo">
+      <span class="logo-char">汉</span>
+      <div>
+        <div class="logo-text">Mandarin</div>
+        <div class="logo-sub">Adam's journey</div>
+      </div>
+    </div>
+    <div class="nav-item active" onclick="showScreen('dashboard')" id="nav-dashboard">
+      <span class="nav-icon">🏠</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="showScreen('pinyin')" id="nav-pinyin">
+      <span class="nav-icon">🔤</span> Pinyin
+    </div>
+    <div class="nav-item" onclick="showScreen('tones')" id="nav-tones">
+      <span class="nav-icon">🎵</span> Tones
+    </div>
+    <div class="nav-item" onclick="showScreen('vocab')" id="nav-vocab">
+      <span class="nav-icon">📚</span> Vocabulary
+    </div>
+    <div class="nav-item" onclick="showScreen('chat')" id="nav-chat">
+      <span class="nav-icon">💬</span> Chat Practice
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="xp-chip">⚡ <strong id="sidebar-xp">0</strong> XP total</div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main">
+
+    <!-- ── DASHBOARD ──────────────────────────────────────── -->
+    <div class="screen active" id="screen-dashboard">
+      <div class="dash-header">
+        <h1>你好, Adam! 👋</h1>
+        <p>Keep going — every lesson brings you closer to full conversation.</p>
+      </div>
+
+      <div id="level-badge-wrap" style="margin-bottom:1.5rem;">
+        <div class="level-badge">⭐ Level <span id="dash-level">1</span> — <span id="dash-level-name">New Learner</span></div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card yellow"><div class="val" id="dash-xp">0</div><div class="lbl">⚡ Total XP</div></div>
+        <div class="stat-card green"><div class="val" id="dash-streak">0</div><div class="lbl">🔥 Day streak</div></div>
+        <div class="stat-card blue"><div class="val" id="dash-lessons">2</div><div class="lbl">📖 Lessons done</div></div>
+        <div class="stat-card red"><div class="val" id="dash-eta">~6 mo</div><div class="lbl">🗓 Est. to conversation</div></div>
+      </div>
+
+      <div class="progress-card">
+        <h2>Conversation readiness</h2>
+        <div class="sub" id="dash-prog-sub">You know the basics — keep going!</div>
+        <div class="bar-wrap"><div class="bar-fill" id="dash-bar" style="width:4%"></div></div>
+        <div class="bar-labels"><span>0%</span><span id="dash-pct">4%</span><span>100%</span></div>
+      </div>
+
+      <div class="section-title">Your lessons</div>
+      <div class="lesson-grid" id="lesson-grid"></div>
+    </div>
+
+    <!-- ── PINYIN ─────────────────────────────────────────── -->
+    <div class="screen" id="screen-pinyin">
+      <div class="lesson-header">
+        <button class="back-btn" onclick="showScreen('dashboard')">← Back</button>
+        <div class="lesson-title-wrap"><h2>Pinyin — the alphabet of Chinese</h2><p>Tap any sound to hear how it's pronounced</p></div>
+      </div>
+      <div class="section-title">Initials (consonants)</div>
+      <div class="pinyin-grid" id="pinyin-initials"></div>
+      <div class="section-title" style="margin-top:1.5rem;">Finals (vowels)</div>
+      <div class="pinyin-grid" id="pinyin-finals"></div>
+      <div style="margin-top:1.5rem;">
+        <button class="btn-primary" onclick="startLesson('pinyin_quiz')">Practice quiz →</button>
+      </div>
+    </div>
+
+    <!-- ── TONES ──────────────────────────────────────────── -->
+    <div class="screen" id="screen-tones">
+      <div class="lesson-header">
+        <button class="back-btn" onclick="showScreen('dashboard')">← Back</button>
+        <div class="lesson-title-wrap"><h2>The 4 tones (+ neutral)</h2><p>Mandarin meaning changes completely based on tone</p></div>
+      </div>
+      <div class="tone-cards" id="tone-cards"></div>
+      <div style="margin-top:1.5rem;">
+        <button class="btn-primary" onclick="startLesson('tones_quiz')">Practice quiz →</button>
+      </div>
+    </div>
+
+    <!-- ── VOCAB LESSON ───────────────────────────────────── -->
+    <div class="screen" id="screen-vocab">
+      <div class="lesson-header">
+        <button class="back-btn" onclick="showScreen('dashboard')">← Back</button>
+        <div class="lesson-title-wrap"><h2>Vocabulary</h2><p>Learn and quiz yourself on new words</p></div>
+      </div>
+      <div id="vocab-lesson-content"></div>
+    </div>
+
+    <!-- ── QUIZ SCREEN ────────────────────────────────────── -->
+    <div class="screen" id="screen-quiz">
+      <div class="lesson-header">
+        <button class="back-btn" onclick="exitQuiz()">← Exit</button>
+        <div class="lesson-title-wrap"><h2 id="quiz-title">Quiz</h2><p id="quiz-sub"></p></div>
+      </div>
+      <div class="progress-dots" id="quiz-dots"></div>
+      <div class="card-stage" id="quiz-stage"></div>
+      <div class="feedback-bar" id="quiz-feedback"></div>
+      <div class="action-row">
+        <button class="btn-secondary" id="quiz-skip" onclick="quizSkip()">Skip</button>
+        <button class="btn-primary" id="quiz-next" onclick="quizNext()" disabled>Continue</button>
+      </div>
+    </div>
+
+    <!-- ── CHAT ───────────────────────────────────────────── -->
+    <div class="screen" id="screen-chat">
+      <div class="lesson-header">
+        <button class="back-btn" onclick="showScreen('dashboard')">← Back</button>
+        <div class="lesson-title-wrap"><h2>Chat Practice</h2><p>Have a real conversation with your AI tutor</p></div>
+      </div>
+      <div class="vocab-pills" id="chat-pills"></div>
+      <div id="chat-box"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Type in English or try Mandarin…"/>
+        <button id="chat-send" onclick="chatSend()">Send →</button>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CONFIG & STATE
+// ══════════════════════════════════════════════════════════════
+let SUPA_URL = 'https://hiyibmmtlggkentvsszy.supabase.co';
+let SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpeWlibW10bGdna2VudHZzc3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MzI1ODIsImV4cCI6MjA5NzAwODU4Mn0.axATMMaW_eE9xvT4fZisMHihNQd-2N3v212TQwI1EZs';
+const USERNAME = 'adam';
+const CLAUDE_MODEL = 'claude-sonnet-4-6';
+
+let state = {
+  xp: 40, level: 1, streak: 0,
+  completedLessons: new Set(['vocab_basics','greetings']),
+  chatHistory: []
+};
+
+// ══════════════════════════════════════════════════════════════
+//  SUPABASE HELPERS
+// ══════════════════════════════════════════════════════════════
+async function supaGet(table, params='') {
+  if (!SUPA_URL) return null;
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?${params}`, {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+    });
+    return await r.json();
+  } catch { return null; }
+}
+
+async function supaUpsert(table, body) {
+  if (!SUPA_URL) return;
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(body)
+    });
+  } catch {}
+}
+
+async function loadProgress() {
+  const profiles = await supaGet('profiles', `username=eq.${USERNAME}`);
+  if (profiles && profiles[0]) {
+    const p = profiles[0];
+    state.xp = p.xp || 0;
+    state.level = p.level || 1;
+    state.streak = p.streak || 0;
+  }
+  const lessons = await supaGet('lesson_progress', `username=eq.${USERNAME}&completed=eq.true`);
+  if (lessons) {
+    lessons.forEach(l => state.completedLessons.add(l.lesson_id));
+  }
+  updateDashboard();
+}
+
+async function saveProgress() {
+  const today = new Date().toISOString().split('T')[0];
+  await supaUpsert('profiles', {
+    username: USERNAME, xp: state.xp, level: state.level,
+    streak: state.streak, last_active: today
+  });
+}
+
+async function markLessonDone(lessonId, score) {
+  state.completedLessons.add(lessonId);
+  await supaUpsert('lesson_progress', {
+    username: USERNAME, lesson_id: lessonId,
+    completed: true, score: score,
+    attempts: 1,
+    completed_at: new Date().toISOString()
+  });
+}
+
+async function addXP(amount, reason) {
+  state.xp += amount;
+  state.level = xpToLevel(state.xp);
+  await saveProgress();
+  if (SUPA_URL) {
+    await fetch(`${SUPA_URL}/rest/v1/xp_events`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username: USERNAME, amount, reason })
+    });
+  }
+  updateDashboard();
+  showToast(`+${amount} XP — ${reason.replace(/_/g,' ')}`, 'xp');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LEVEL SYSTEM
+// ══════════════════════════════════════════════════════════════
+const LEVELS = [
+  { min:0,    name:'New Learner',        eta:'~8 months' },
+  { min:100,  name:'Pinyin Starter',     eta:'~7 months' },
+  { min:250,  name:'Tone Explorer',      eta:'~6 months' },
+  { min:500,  name:'Word Builder',       eta:'~5 months' },
+  { min:900,  name:'Phrase Speaker',     eta:'~4 months' },
+  { min:1500, name:'Sentence Maker',     eta:'~3 months' },
+  { min:2500, name:'Conversation Ready', eta:'~2 months' },
+  { min:4000, name:'Fluency Path',       eta:'~1 month'  },
+  { min:6000, name:'Conversationalist',  eta:'You can do it! 🎉' }
+];
+
+function xpToLevel(xp) {
+  let l = 1;
+  LEVELS.forEach((lv,i) => { if (xp >= lv.min) l = i+1; });
+  return l;
+}
+
+function getLevelInfo(xp) {
+  let idx = 0;
+  LEVELS.forEach((lv,i) => { if (xp >= lv.min) idx = i; });
+  return { ...LEVELS[idx], num: idx+1 };
+}
+
+function xpToConvPct(xp) {
+  return Math.min(100, Math.round(xp / 60));
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LESSON DATA
+// ══════════════════════════════════════════════════════════════
+const LESSONS = [
+  { id:'greetings',     name:'Greetings',       icon:'👋', desc:'Hello & goodbye', xp:20,  prereq:null },
+  { id:'vocab_basics',  name:'Basic words',     icon:'🍵', desc:'Water, rice, tea…', xp:20, prereq:null },
+  { id:'pinyin_quiz',   name:'Pinyin quiz',     icon:'🔤', desc:'Sound practice',  xp:30,  prereq:'greetings' },
+  { id:'tones_quiz',    name:'Tones quiz',      icon:'🎵', desc:'4 tones practice',xp:30,  prereq:'pinyin_quiz' },
+  { id:'numbers',       name:'Numbers 1–10',    icon:'🔢', desc:'Count in Chinese',xp:30,  prereq:'vocab_basics' },
+  { id:'family',        name:'Family words',    icon:'👨‍👩‍👧', desc:'Mum, dad, sister…',xp:35, prereq:'numbers' },
+  { id:'colours',       name:'Colours',         icon:'🎨', desc:'Red, blue, green',xp:35,  prereq:'family' },
+  { id:'food',          name:'Food & drink',    icon:'🍜', desc:'Order like a pro', xp:40, prereq:'colours' },
+  { id:'intro',         name:'Intro sentence',  icon:'💬', desc:'Full self-intro',  xp:50, prereq:'family' },
+];
+
+const VOCAB = {
+  greetings: [
+    { char:'你好', pin:'nǐ hǎo', en:'Hello' },
+    { char:'再见', pin:'zài jiàn', en:'Goodbye' },
+    { char:'谢谢', pin:'xiè xie', en:'Thank you' },
+    { char:'对不起', pin:'duì bu qǐ', en:'Sorry' },
+    { char:'没关系', pin:'méi guān xi', en:'No worries' },
+  ],
+  vocab_basics: [
+    { char:'水', pin:'shuǐ', en:'Water' },
+    { char:'米饭', pin:'mǐ fàn', en:'Rice' },
+    { char:'汤', pin:'tāng', en:'Soup' },
+    { char:'咖啡', pin:'kā fēi', en:'Coffee' },
+    { char:'茶', pin:'chá', en:'Tea' },
+    { char:'热', pin:'rè', en:'Hot' },
+    { char:'心', pin:'xīn', en:'Heart' },
+    { char:'这是', pin:'zhè shì', en:'This is' },
+  ],
+  numbers: [
+    { char:'一', pin:'yī', en:'One' },
+    { char:'二', pin:'èr', en:'Two' },
+    { char:'三', pin:'sān', en:'Three' },
+    { char:'四', pin:'sì', en:'Four' },
+    { char:'五', pin:'wǔ', en:'Five' },
+    { char:'六', pin:'liù', en:'Six' },
+    { char:'七', pin:'qī', en:'Seven' },
+    { char:'八', pin:'bā', en:'Eight' },
+    { char:'九', pin:'jiǔ', en:'Nine' },
+    { char:'十', pin:'shí', en:'Ten' },
+  ],
+  family: [
+    { char:'妈妈', pin:'māma', en:'Mum' },
+    { char:'爸爸', pin:'bàba', en:'Dad' },
+    { char:'姐姐', pin:'jiě jie', en:'Older sister' },
+    { char:'弟弟', pin:'dì di', en:'Younger brother' },
+    { char:'朋友', pin:'péng you', en:'Friend' },
+  ],
+  colours: [
+    { char:'红色', pin:'hóng sè', en:'Red' },
+    { char:'蓝色', pin:'lán sè', en:'Blue' },
+    { char:'绿色', pin:'lǜ sè', en:'Green' },
+    { char:'白色', pin:'bái sè', en:'White' },
+    { char:'黑色', pin:'hēi sè', en:'Black' },
+  ],
+  food: [
+    { char:'面条', pin:'miàn tiáo', en:'Noodles' },
+    { char:'饺子', pin:'jiǎo zi', en:'Dumplings' },
+    { char:'面包', pin:'miàn bāo', en:'Bread' },
+    { char:'鸡蛋', pin:'jī dàn', en:'Egg' },
+    { char:'牛奶', pin:'niú nǎi', en:'Milk' },
+  ],
+  intro: [
+    { char:'我叫', pin:'wǒ jiào', en:'My name is' },
+    { char:'我是', pin:'wǒ shì', en:'I am' },
+    { char:'我来自', pin:'wǒ lái zì', en:'I am from' },
+    { char:'很高兴认识你', pin:'hěn gāo xìng rèn shi nǐ', en:'Nice to meet you' },
+    { char:'你呢？', pin:'nǐ ne', en:'And you?' },
+  ],
+};
+
+// ══════════════════════════════════════════════════════════════
+//  PINYIN DATA
+// ══════════════════════════════════════════════════════════════
+const INITIALS = [
+  {p:'b',ex:'b in "boy"'},{p:'p',ex:'p in "pen"'},{p:'m',ex:'m in "map"'},{p:'f',ex:'f in "fan"'},
+  {p:'d',ex:'d in "dog"'},{p:'t',ex:'t in "top"'},{p:'n',ex:'n in "no"'},{p:'l',ex:'l in "leg"'},
+  {p:'g',ex:'g in "go"'},{p:'k',ex:'k in "key"'},{p:'h',ex:'h in "hot"'},
+  {p:'j',ex:'like "jee"'},{p:'q',ex:'like "chee"'},{p:'x',ex:'like "shee"'},
+  {p:'zh',ex:'like "jr"'},{p:'ch',ex:'ch in "chin"'},{p:'sh',ex:'sh in "ship"'},{p:'r',ex:'like "r"'},
+  {p:'z',ex:'ds in "kids"'},{p:'c',ex:'ts in "cats"'},{p:'s',ex:'s in "sun"'},{p:'y',ex:'y in "yes"'},{p:'w',ex:'w in "wet"'}
+];
+const FINALS = [
+  {p:'a',ex:'ah'},{p:'o',ex:'oh'},{p:'e',ex:'uh'},{p:'i',ex:'ee'},{p:'u',ex:'oo'},{p:'ü',ex:'French u'},
+  {p:'ai',ex:'eye'},{p:'ei',ex:'ay'},{p:'ui',ex:'way'},{p:'ao',ex:'ow'},{p:'ou',ex:'oh'},
+  {p:'an',ex:'an'},{p:'en',ex:'un'},{p:'ang',ex:'ahng'},{p:'eng',ex:'ung'},{p:'ing',ex:'ing'},{p:'ong',ex:'oong'}
+];
+
+// ══════════════════════════════════════════════════════════════
+//  TONES DATA
+// ══════════════════════════════════════════════════════════════
+const TONES = [
+  { cls:'t1', mark:'mā', num:'1st tone', desc:'High and flat — like saying "ahhh" at the doctor. Stays at the top.', ex:'妈 (mā) = Mum' },
+  { cls:'t2', mark:'má', num:'2nd tone', desc:'Rising — like asking a question in English: "What?". Goes up.', ex:'麻 (má) = Hemp / numb' },
+  { cls:'t3', mark:'mǎ', num:'3rd tone', desc:'Dip and rise — goes down then up, like saying "really?" in a surprised way.', ex:'马 (mǎ) = Horse' },
+  { cls:'t4', mark:'mà', num:'4th tone', desc:'Falling sharply — like giving a command: "Stop!". Goes down fast.', ex:'骂 (mà) = To scold' },
+  { cls:'t5', mark:'ma', num:'Neutral tone', desc:'Short and light — unstated, no mark. Used at the end of questions.', ex:'吗 (ma) = Question particle' },
+];
+
+// ══════════════════════════════════════════════════════════════
+//  QUIZ ENGINE
+// ══════════════════════════════════════════════════════════════
+let quiz = { id:'', questions:[], current:0, correct:0, answered:false };
+
+function buildQuizQuestions(lessonId) {
+  const pool = VOCAB[lessonId] || [];
+  if (!pool.length) return [];
+  const shuffled = [...pool].sort(() => Math.random()-.5).slice(0,5);
+  return shuffled.map(item => {
+    // pick 3 wrong answers
+    const wrongs = pool.filter(x => x.en !== item.en).sort(()=>Math.random()-.5).slice(0,3);
+    const opts = [...wrongs, item].sort(()=>Math.random()-.5);
+    return { type:'mcq', question: item.char, hint: item.pin, answer: item.en, options: opts.map(o=>o.en) };
+  });
+}
+
+function buildPinyinQuiz() {
+  const pool = [...INITIALS,...FINALS].sort(()=>Math.random()-.5).slice(0,6);
+  return pool.map(item => {
+    const wrongs = [...INITIALS,...FINALS].filter(x=>x.p!==item.p).sort(()=>Math.random()-.5).slice(0,3);
+    const opts = [...wrongs,item].sort(()=>Math.random()-.5);
+    return { type:'mcq', question:`"${item.p}"`, hint:'What does this sound like?', answer:item.ex, options:opts.map(o=>o.ex) };
+  });
+}
+
+function buildTonesQuiz() {
+  return TONES.slice(0,4).map(t => {
+    const wrongs = TONES.filter(x=>x.num!==t.num).sort(()=>Math.random()-.5).slice(0,3);
+    const opts = [...wrongs,t].sort(()=>Math.random()-.5);
+    return { type:'mcq', question:t.mark, hint:'Which tone is this?', answer:t.num, options:opts.map(o=>o.num) };
+  });
+}
+
+function startLesson(lessonId) {
+  // if vocab lesson, just show flashcards
+  const vocabLessons = ['greetings','vocab_basics','numbers','family','colours','food','intro'];
+  if (vocabLessons.includes(lessonId)) {
+    showVocabLesson(lessonId); return;
+  }
+  let questions = [];
+  if (lessonId === 'pinyin_quiz') questions = buildPinyinQuiz();
+  else if (lessonId === 'tones_quiz') questions = buildTonesQuiz();
+
+  quiz = { id:lessonId, questions, current:0, correct:0, answered:false };
+  renderQuiz();
+  showScreen('quiz');
+}
+
+function renderQuiz() {
+  const q = quiz.questions[quiz.current];
+  const total = quiz.questions.length;
+  document.getElementById('quiz-title').textContent = LESSONS.find(l=>l.id===quiz.id)?.name || 'Quiz';
+  document.getElementById('quiz-sub').textContent = `Question ${quiz.current+1} of ${total}`;
+
+  // dots
+  const dots = document.getElementById('quiz-dots');
+  dots.innerHTML = quiz.questions.map((_,i) =>
+    `<div class="dot ${i<quiz.current?'done-dot':i===quiz.current?'current-dot':''}"></div>`
+  ).join('');
+
+  // stage
+  const stage = document.getElementById('quiz-stage');
+  stage.innerHTML = `
+    <div class="big-char">${q.question}</div>
+    <div class="big-pinyin">${q.hint}</div>
+    <div style="height:8px"></div>
+  `;
+
+  // options
+  const opts = document.createElement('div');
+  opts.className = 'quiz-options';
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = opt;
+    btn.onclick = () => answerQuiz(opt, btn);
+    opts.appendChild(btn);
+  });
+
+  // append options below stage in main
+  const existing = document.getElementById('quiz-options-wrap');
+  if (existing) existing.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'quiz-options-wrap';
+  wrap.appendChild(opts);
+  document.getElementById('quiz-stage').after(wrap);
+
+  document.getElementById('quiz-feedback').classList.remove('show');
+  document.getElementById('quiz-next').disabled = true;
+  quiz.answered = false;
+}
+
+function answerQuiz(chosen, btn) {
+  if (quiz.answered) return;
+  quiz.answered = true;
+  const q = quiz.questions[quiz.current];
+  const correct = chosen === q.answer;
+  if (correct) quiz.correct++;
+
+  document.querySelectorAll('.quiz-opt').forEach(b => {
+    b.disabled = true;
+    if (b.textContent === q.answer) b.classList.add('correct');
+  });
+  if (!correct) btn.classList.add('wrong');
+
+  const fb = document.getElementById('quiz-feedback');
+  fb.textContent = correct ? `✅ Correct! "${q.answer}"` : `❌ The answer was: "${q.answer}"`;
+  fb.className = `feedback-bar show ${correct?'ok':'bad'}`;
+  document.getElementById('quiz-next').disabled = false;
+}
+
+function quizSkip() {
+  quiz.answered = true;
+  quiz.current++;
+  if (quiz.current >= quiz.questions.length) finishQuiz();
+  else renderQuiz();
+}
+
+function quizNext() {
+  if (!quiz.answered) return;
+  quiz.current++;
+  if (quiz.current >= quiz.questions.length) finishQuiz();
+  else renderQuiz();
+}
+
+async function finishQuiz() {
+  const score = Math.round((quiz.correct / quiz.questions.length) * 100);
+  const xpGain = LESSONS.find(l=>l.id===quiz.id)?.xp || 20;
+  const already = state.completedLessons.has(quiz.id);
+  if (!already) {
+    await markLessonDone(quiz.id, score);
+    await addXP(xpGain, 'lesson_complete');
+  }
+
+  const stage = document.getElementById('quiz-stage');
+  stage.innerHTML = `
+    <div style="font-size:52px">${score>=80?'🎉':score>=50?'👍':'💪'}</div>
+    <div style="font-size:22px;font-weight:700;">${score}%</div>
+    <div style="font-size:15px;color:var(--muted);">${quiz.correct} / ${quiz.questions.length} correct</div>
+    <div style="font-size:13px;color:var(--muted2);margin-top:8px;">${already?'No XP — already completed':'+'+(LESSONS.find(l=>l.id===quiz.id)?.xp||20)+' XP earned!'}</div>
+  `;
+  const wrap = document.getElementById('quiz-options-wrap');
+  if (wrap) wrap.remove();
+  document.getElementById('quiz-feedback').classList.remove('show');
+  document.getElementById('quiz-next').textContent = 'Back to dashboard';
+  document.getElementById('quiz-next').disabled = false;
+  document.getElementById('quiz-next').onclick = () => { showScreen('dashboard'); document.getElementById('quiz-next').onclick = quizNext; document.getElementById('quiz-next').textContent = 'Continue'; };
+  document.getElementById('quiz-skip').style.display = 'none';
+  buildLessonGrid();
+}
+
+function exitQuiz() {
+  document.getElementById('quiz-skip').style.display = '';
+  showScreen('dashboard');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  VOCAB FLASHCARD LESSON
+// ══════════════════════════════════════════════════════════════
+function showVocabLesson(lessonId) {
+  const words = VOCAB[lessonId] || [];
+  const lesson = LESSONS.find(l=>l.id===lessonId);
+  const content = document.getElementById('vocab-lesson-content');
+  const done = state.completedLessons.has(lessonId);
+
+  content.innerHTML = `
+    <div class="section-title">${lesson?.name} — ${words.length} words</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:1.5rem;">
+      ${words.map(w=>`
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-align:center;">
+          <div style="font-size:36px;margin-bottom:6px;">${w.char}</div>
+          <div style="font-size:14px;color:var(--red);font-style:italic;margin-bottom:4px;">${w.pin}</div>
+          <div style="font-size:13px;color:var(--muted);">${w.en}</div>
+        </div>
+      `).join('')}
+    </div>
+    ${done
+      ? `<div style="color:var(--green);font-size:14px;margin-bottom:1rem;">✅ Already completed — no XP deducted.</div>`
+      : `<button class="btn-primary" onclick="completeVocabLesson('${lessonId}')">Mark as learned (+${lesson?.xp||20} XP)</button>`
+    }
+  `;
+  showScreen('vocab');
+}
+
+async function completeVocabLesson(lessonId) {
+  const lesson = LESSONS.find(l=>l.id===lessonId);
+  await markLessonDone(lessonId, 100);
+  await addXP(lesson?.xp||20, 'lesson_complete');
+  showVocabLesson(lessonId);
+  buildLessonGrid();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════════════════════
+function updateDashboard() {
+  const lvInfo = getLevelInfo(state.xp);
+  const pct = xpToConvPct(state.xp);
+  document.getElementById('dash-xp').textContent = state.xp;
+  document.getElementById('dash-streak').textContent = state.streak;
+  document.getElementById('dash-lessons').textContent = state.completedLessons.size;
+  document.getElementById('dash-level').textContent = lvInfo.num;
+  document.getElementById('dash-level-name').textContent = lvInfo.name;
+  document.getElementById('dash-eta').textContent = lvInfo.eta;
+  document.getElementById('dash-bar').style.width = pct + '%';
+  document.getElementById('dash-pct').textContent = pct + '%';
+  document.getElementById('sidebar-xp').textContent = state.xp;
+  const sub = pct < 20 ? 'Just getting started — you\'ve got this!' :
+              pct < 50 ? 'Good progress — keep going!' :
+              pct < 80 ? 'You\'re more than halfway there!' :
+              'Almost conversation ready! 🎉';
+  document.getElementById('dash-prog-sub').textContent = sub;
+  buildLessonGrid();
+}
+
+function buildLessonGrid() {
+  const grid = document.getElementById('lesson-grid');
+  grid.innerHTML = LESSONS.map(l => {
+    const done = state.completedLessons.has(l.id);
+    const prereqDone = !l.prereq || state.completedLessons.has(l.prereq);
+    const cls = done ? 'done' : prereqDone ? '' : 'locked';
+    const badge = done ? '✓ Done' : prereqDone ? 'Start' : '🔒';
+    return `
+      <div class="lesson-card ${cls}" onclick="${cls!=='locked'?`startLesson('${l.id}')`:''}" title="${!prereqDone?'Complete the previous lesson first':''}">
+        <div class="lc-icon">${l.icon}</div>
+        <div class="lc-name">${l.name}</div>
+        <div class="lc-sub">${l.desc}</div>
+        <div class="lc-badge">${badge}</div>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PINYIN & TONES RENDER
+// ══════════════════════════════════════════════════════════════
+function renderPinyin() {
+  document.getElementById('pinyin-initials').innerHTML = INITIALS.map(i =>
+    `<div class="pinyin-tile" onclick="speakPinyin('${i.p}')"><div class="pt-pin">${i.p}</div><div class="pt-ex">${i.ex}</div></div>`
+  ).join('');
+  document.getElementById('pinyin-finals').innerHTML = FINALS.map(i =>
+    `<div class="pinyin-tile" onclick="speakPinyin('${i.p}')"><div class="pt-pin">${i.p}</div><div class="pt-ex">${i.ex}</div></div>`
+  ).join('');
+}
+
+function renderTones() {
+  document.getElementById('tone-cards').innerHTML = TONES.map(t =>
+    `<div class="tone-card ${t.cls}">
+      <div class="tc-mark">${t.mark}</div>
+      <div class="tc-name">${t.num}</div>
+      <div class="tc-desc">${t.desc}</div>
+      <div class="tc-ex">${t.ex}</div>
+    </div>`
+  ).join('');
+}
+
+function speakPinyin(text) {
+  if (!('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'zh-CN'; u.rate = 0.7;
+  window.speechSynthesis.speak(u);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CHAT
+// ══════════════════════════════════════════════════════════════
+const CHAT_SYSTEM = `You are a friendly, encouraging Mandarin (Simplified Chinese) tutor for a complete beginner named Adam who is around 10-11 years old.
+
+Adam has learned: 水(shuǐ-water), 米饭(mǐfàn-rice), 汤(tāng-soup), 心(xīn-heart), 咖啡(kāfēi-coffee), 茶(chá-tea), 这是(zhè shì-this is), 热(rè-hot), 你好(nǐ hǎo-hello), 我叫(wǒ jiào-I'm called), 再见(zài jiàn-goodbye), 谢谢(xiè xie-thank you).
+
+Rules:
+- Keep responses SHORT — 2-3 sentences max
+- Always show pinyin in brackets after Chinese characters e.g. 你好 (nǐ hǎo)
+- Praise attempts warmly, gently correct mistakes
+- If Adam writes Chinese, praise him and build on it
+- Teach ONE new thing at a time
+- Make it feel like a real friendly chat
+- Occasionally suggest small challenges`;
+
+function buildChatPills() {
+  const pills = [
+    {t:'你好',l:'Hello'},{t:'再见',l:'Goodbye'},{t:'谢谢',l:'Thanks'},
+    {t:'水',l:'Water'},{t:'茶',l:'Tea'},{t:'这是热茶',l:'This is hot tea'},
+    {t:'我叫Adam',l:'My name is Adam'}
+  ];
+  document.getElementById('chat-pills').innerHTML = pills.map(p =>
+    `<span class="vpill" onclick="chatQuick('${p.t}')">${p.t} · ${p.l}</span>`
+  ).join('');
+}
+
+function chatAddMsg(role, html) {
+  const box = document.getElementById('chat-box');
+  const div = document.createElement('div');
+  div.className = 'cmsg ' + (role==='user'?'user':'bot');
+  div.innerHTML = `<div class="cbubble">${html}</div><div class="clabel">${role==='user'?'Adam':'Tutor'}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function chatShowTyping() {
+  const box = document.getElementById('chat-box');
+  const d = document.createElement('div');
+  d.className='cmsg bot'; d.id='typing-msg';
+  d.innerHTML=`<div class="typing-dots"><span></span><span></span><span></span></div>`;
+  box.appendChild(d); box.scrollTop=box.scrollHeight;
+}
+function chatRemoveTyping() { const t=document.getElementById('typing-msg'); if(t)t.remove(); }
+
+async function chatSend() {
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim(); if(!text) return;
+  inp.value = '';
+  chatAddMsg('user', escHtml(text));
+  state.chatHistory.push({role:'user',content:text});
+  document.getElementById('chat-send').disabled=true;
+  chatShowTyping();
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ model:CLAUDE_MODEL, max_tokens:1000, system:CHAT_SYSTEM, messages:state.chatHistory })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Sorry, something went wrong!';
+    state.chatHistory.push({role:'assistant',content:reply});
+    // save to Supabase
+    if (SUPA_URL) {
+      await fetch(`${SUPA_URL}/rest/v1/chat_log`,{
+        method:'POST',
+        headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body: JSON.stringify([
+          {username:USERNAME,role:'user',content:text},
+          {username:USERNAME,role:'assistant',content:reply}
+        ])
+      });
+    }
+    chatRemoveTyping();
+    chatAddMsg('bot', escHtml(reply).replace(/\n/g,'<br>'));
+    // small XP for chatting
+    if (state.chatHistory.length % 10 === 0) await addXP(5,'chat_practice');
+  } catch(e) {
+    chatRemoveTyping();
+    chatAddMsg('bot','Connection error — check you\'re online and try again.');
+  }
+  document.getElementById('chat-send').disabled=false;
+}
+
+function chatQuick(phrase) {
+  document.getElementById('chat-input').value = phrase;
+  document.getElementById('chat-input').focus();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('chat-input').addEventListener('keydown', e => {
+    if(e.key==='Enter') chatSend();
+  });
+});
+
+// ══════════════════════════════════════════════════════════════
+//  NAV & SCREENS
+// ══════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  const nav = document.getElementById('nav-'+id);
+  if (nav) nav.classList.add('active');
+  if (id==='chat' && document.getElementById('chat-box').children.length===0) {
+    chatAddMsg('bot','你好 Adam！Nǐ hǎo! I\'m your Mandarin tutor 😊 Try greeting me, or ask me to teach you something!');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg, cls='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${cls}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.className=''; }, 2800);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CONFIG MODAL
+// ══════════════════════════════════════════════════════════════
+function saveConfig() {
+  const url = document.getElementById('cfg-url').value.trim();
+  const key = document.getElementById('cfg-key').value.trim();
+  if (!url || !key) { showToast('Please fill in both fields'); return; }
+  SUPA_URL = url; SUPA_KEY = key;
+  localStorage.setItem('supa_url', url);
+  localStorage.setItem('supa_key', key);
+  document.getElementById('config-screen').style.display='none';
+  loadProgress();
+  showToast('Connected to Supabase ✓','xp');
+}
+
+function skipConfig() {
+  document.getElementById('config-screen').style.display='none';
+  updateDashboard();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════════════════
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ══════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════
+renderPinyin();
+renderTones();
+buildChatPills();
+
+document.getElementById('config-screen').style.display='none';
+loadProgress();
+</script>
+</body>
+</html>
